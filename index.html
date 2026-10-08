@@ -2,301 +2,458 @@
 <title>Medivia Respawn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Alegreya+Sans+SC:wght@500;700&family=Chivo+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:wght@500;700;800&display=swap">
 <style>
-/* Layout: bancada de duas colunas. Banco de respawns à esquerda; à direita a ficha do
-   respawn (bônus, cronômetros, tabela). A captura do print fica em faixa no topo.
-   Cores tiradas da janela de bônus do jogo: âmbar nos nomes, verde nos valores, verde-água nas bordas. */
+/* Layout: duas janelas no padrão da janela de bônus do Medivia, sobre um mapa de caverna escurecido.
+   À esquerda a lista de respawns; à direita a janela do respawn, com os cronômetros no lugar onde
+   o jogo mostra o mapa da área. Cores medidas no print da janela de bônus. Visual único e escuro, de propósito. */
 :root {
   color-scheme: dark;
-  --bg: #0e1312;
-  --panel: #151b1a;
-  --panel-2: #1d2524;
-  --line: #2a3634;
-  --rule: #2c6b60;
-  --fg: #e2e8e4;
-  --muted: #8c9d97;
-  --name: #e9a23b;
-  --value: #5fd873;
-  --accent: #41b9a7;
-  --accent-ink: #06211d;
-  --warn: #f0c04a;
-  --danger: #e5645c;
-  --font-body: "Alegreya Sans", system-ui, "Segoe UI", sans-serif;
-  --font-label: "Alegreya Sans SC", "Alegreya Sans", system-ui, sans-serif;
-  --font-num: "Chivo Mono", ui-monospace, Consolas, monospace;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    color-scheme: light;
-    --bg: #eef2ee; --panel: #fbfcfa; --panel-2: #e3eae5; --line: #cdd7d1; --rule: #2f8375;
-    --fg: #16201d; --muted: #586862; --name: #99580a; --value: #18752f;
-    --accent: #0e7c6d; --accent-ink: #ffffff; --warn: #8a6100; --danger: #b3362e;
-  }
-}
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #eef2ee; --panel: #fbfcfa; --panel-2: #e3eae5; --line: #cdd7d1; --rule: #2f8375;
-  --fg: #16201d; --muted: #586862; --name: #99580a; --value: #18752f;
-  --accent: #0e7c6d; --accent-ink: #ffffff; --warn: #8a6100; --danger: #b3362e;
+  --ground: #111110;    /* fundo da janela */
+  --box: #1a1a18;       /* caixas de controle */
+  --card: #171716;      /* cards de monstro */
+  --edge: #262622;      /* contorno de caixas e cards */
+  --frame: #154d39;     /* filetes verdes da janela */
+  --band: #17302b;      /* faixa de seção */
+  --title: #f2fdfc;
+  --amber: #f0ad4d;     /* nomes de monstro */
+  --label: #bbbbbb;
+  --faint: #85857f;
+  --value: #00ff00;
+  --teal: #33c9c9;      /* botão de ação */
+  --red: #f40101;       /* botão de fechar */
+  --btn: #1d1d1d;
+  --btn-edge: #1f4f4c;
+  --font-ui: "Alegreya Sans", "Fira Sans", "Segoe UI", sans-serif;
+  --font-btn: "Alegreya", Georgia, "Times New Roman", serif;
+  --knot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='132' height='54' viewBox='0 0 132 54'%3E%3Cg fill='none' stroke='%231a2221' stroke-width='5' stroke-linecap='round'%3E%3Cpath d='M4 50c0-24 14-40 33-40 15 0 25 10 25 22 0 10-7 16-15 16-7 0-12-5-12-11 0-5 4-9 8-9'/%3E%3Cpath d='M128 4c0 24-14 40-33 40-15 0-25-10-25-22 0-10 7-16 15-16 7 0 12 5 12 11 0 5-4 9-8 9'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font: 400 17px/1.45 var(--font-body);
+  margin: 0;
+  background: var(--ground);
+  color: var(--label);
+  font: 500 16px/1.4 var(--font-ui);
+  font-variant-numeric: lining-nums;
 }
-h1, h2, h3, p, ul { margin: 0; }
-ul { padding: 0; list-style: none; }
+h1, h2, h3, h4, p, ul, ol { margin: 0; }
 button, input, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+a { color: var(--teal); }
+kbd {
+  padding: 1px 6px 2px;
+  border: 1px solid var(--edge);
+  border-bottom-width: 2px;
+  background: var(--box);
+  font: 700 14px/1 var(--font-ui);
+  color: var(--title);
+}
+
+/* O mundo do jogo atrás das janelas: mapa de caverna desenhado pelo script, bem escurecido. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--map, none) center / cover no-repeat;
+  image-rendering: pixelated;
+  opacity: 0.34;
+  pointer-events: none;
+}
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 35%, transparent 0, var(--ground) 88%);
+}
 
 .wrap {
-  max-width: 1180px;
+  position: relative;
+  max-width: 1080px;
   margin-inline: auto;
-  padding-inline: 20px;
-  padding-block: 24px 48px;
+  padding-inline: 16px;
+  padding-block: 22px 36px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
 }
 
-.label {
-  font: 700 15px/1.2 var(--font-label);
-  letter-spacing: 0.08em;
-  color: var(--name);
-}
-.muted { color: var(--muted); }
-.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.masthead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; }
+.masthead > div { flex: 1 1 320px; min-width: 0; }
+.masthead h1 { font: 700 34px/1.05 var(--font-btn); color: var(--title); }
+.masthead p { max-width: 60ch; margin-top: 4px; }
+.masthead nav { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-weight: 700; }
+.colophon { max-width: 78ch; font-size: 14px; color: var(--faint); }
+.maker { display: block; flex: none; }
+.maker img { display: block; width: auto; height: 48px; }
 
-/* Cabeçalho */
-.top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 24px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--rule);
+/* Faixa de instrução: a única coisa que a pessoa precisa saber para usar o site */
+.paste {
+  padding: 9px 14px 10px;
+  border-block: 1px solid #1f4a40;
+  background: linear-gradient(90deg, var(--band), rgba(23, 48, 43, 0.25));
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--title);
 }
-.top h1 {
-  font: 700 30px/1.1 var(--font-label);
-  letter-spacing: 0.06em;
-  color: var(--name);
-}
-.top p { font-size: 15px; color: var(--muted); }
+.paste kbd { margin-inline: 1px; font-size: 15px; }
 
-/* Captura do print */
-.capture {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px 20px;
-  border: 1px dashed var(--rule);
-  background: var(--panel);
-}
-.capture.over { border-style: solid; background: var(--panel-2); }
-.capture h2 { font: 700 22px/1.2 var(--font-body); text-wrap: balance; }
-.capture p { max-width: 70ch; }
-kbd {
-  font: 600 13px/1 var(--font-num);
-  padding: 3px 6px;
-  border: 1px solid var(--line);
-  border-bottom-width: 2px;
-  background: var(--panel-2);
-}
-.linklike { color: var(--accent); text-decoration: underline; cursor: pointer; }
-.status { font-size: 15px; color: var(--muted); min-height: 1.45em; }
-.status[data-kind="busy"] { color: var(--warn); }
-.status[data-kind="ok"] { color: var(--value); }
-.status[data-kind="err"] { color: var(--danger); }
-
-/* Bancada */
-.bench {
+.desk {
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr);
-  gap: 28px;
+  gap: 18px;
   align-items: start;
 }
-@media (max-width: 860px) {
-  .bench { grid-template-columns: minmax(0, 1fr); }
-  .sheet { order: -1; }
+
+/* Janela do jogo */
+.win {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--ground);
+  border: 1px solid #2b2b28;
+  box-shadow: 0 0 0 1px #000, 0 20px 60px rgba(0, 0, 0, 0.65);
+}
+.win.over { outline: 2px solid var(--teal); outline-offset: 2px; }
+.win-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 8px 76px;
+  background:
+    radial-gradient(ellipse 55% 130% at 50% 50%, rgba(23, 48, 43, 0.75), transparent 70%),
+    var(--knot) center / auto 100% repeat-x,
+    var(--ground);
+  border-bottom: 1px solid #1d2b2b;
+}
+.win-name {
+  width: 100%;
+  font: 800 20px/1.2 var(--font-ui);
+  color: var(--title);
+  text-align: center;
+}
+input.win-name { padding: 2px 0; border: 0; border-bottom: 1px solid transparent; background: none; }
+input.win-name:not([readonly]):hover, input.win-name:not([readonly]):focus { border-bottom-color: var(--btn-edge); outline: none; }
+.win-x {
+  position: absolute;
+  right: 10px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font: 500 14px/1.2 var(--font-btn);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.win-x:hover, .win-x.sure { color: var(--red); }
+.win-body { display: flex; flex-direction: column; gap: 10px; padding: 12px; min-width: 0; }
+.win-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--frame);
+}
+#sheet { display: flex; flex-direction: column; min-width: 0; }
+
+/* Botões de diálogo, como BÔNUS e FECHAR */
+.dlg {
+  min-width: 92px;
+  padding: 5px 14px 4px;
+  border: 1px solid var(--btn-edge);
+  background: var(--btn);
+  font: 500 17px/1.2 var(--font-btn);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.dlg.go { color: var(--teal); }
+.dlg.stop { color: var(--red); }
+.dlg:hover { border-color: currentColor; background: #242424; }
+.dlg:active { transform: translateY(1px); }
+
+/* Cronômetros, no lugar do mapa da área */
+.stage { display: flex; flex-direction: column; gap: 1px; background: var(--edge); border: 1px solid var(--frame); }
+.clocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; }
+.clock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 14px 16px 17px;
+  background: #0b0b0a;
+  font-weight: 700;
+}
+.clock-time { font-size: 17px; line-height: 1; white-space: nowrap; }
+.clock-digits {
+  margin-right: 8px;
+  font: 800 80px/0.9 var(--font-ui);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--label);
+}
+.clock[data-state="run"] .clock-digits { color: var(--value); }
+.clock[data-state="warn"] .clock-digits { color: var(--amber); }
+.clock[data-state="done"] .clock-digits { color: var(--title); }
+.clock-note { min-height: 1.4em; }
+.clock-who { color: var(--amber); overflow-wrap: anywhere; }
+.clock-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.clock-bar { position: absolute; inset: auto 0 0 0; height: 3px; }
+.clock-bar i { display: block; width: 0; height: 100%; background: var(--value); }
+.clock[data-state="warn"] .clock-bar i { background: var(--amber); }
+.stage-all {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  background: var(--ground);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--faint);
 }
 
-/* Banco */
-.bank { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.bank input[type="search"], .field {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  background: var(--panel);
+/* Caixas de controle: grupo, custo e percentual */
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px 8px;
+  background: var(--box);
+  border: 1px solid var(--edge);
+  text-align: center;
 }
-.bank-list { display: flex; flex-direction: column; gap: 2px; max-height: 60vh; overflow-y: auto; }
-.bank-item {
+.ctl h3 { font: 700 16px/1.2 var(--font-ui); color: var(--title); }
+.slide {
+  display: flex;
+  align-items: center;
   width: 100%;
+  height: 20px;
+  background: #141413;
+  border: 1px solid #1f4744;
+}
+.slide button {
+  flex: none;
+  width: 18px;
+  height: 100%;
+  padding: 0 0 2px;
+  border: 0;
+  background: none;
+  color: var(--title);
+  font: 800 17px/1 var(--font-ui);
+  cursor: pointer;
+}
+.slide button:disabled { opacity: 0.3; cursor: default; }
+.slide input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.slide input::-webkit-slider-runnable-track { height: 100%; background: none; }
+.slide input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 12px; margin-top: 3px; border: 0; border-radius: 0; background: #aaaaaa; }
+.slide input::-moz-range-track { height: 100%; background: none; }
+.slide input::-moz-range-thumb { width: 30px; height: 12px; border: 0; border-radius: 0; background: #aaaaaa; }
+.stops { display: flex; width: 100%; gap: 2px; }
+.stops button {
+  flex: 1;
+  padding: 1px 0;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font: 700 13px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.stops button:hover { color: var(--title); }
+.stops button.on { color: var(--value); }
+.cost { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 20px; font: 700 17px/1 var(--font-ui); }
+.coin svg { display: block; width: 20px; height: 13px; }
+.ctl-note { font: 700 13px/1.2 var(--font-ui); color: var(--faint); }
+
+/* Faixa e lista de monstros */
+.band {
+  margin: 2px -12px 0;
+  padding: 7px 12px 6px;
+  border-block: 1px solid #1f4a40;
+  background: linear-gradient(90deg, rgba(23, 48, 43, 0.2), var(--band) 30%, var(--band) 70%, rgba(23, 48, 43, 0.2));
+  font: 800 15px/1.2 var(--font-ui);
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--amber);
+}
+.mobs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 6px; border: 1px solid #27322f; }
+.mob { position: relative; min-width: 0; padding: 9px 12px 10px; background: var(--card); border: 1px solid var(--edge); font-weight: 700; }
+.mob h4 { padding-right: 20px; font: 800 16px/1.3 var(--font-ui); color: var(--amber); overflow-wrap: anywhere; }
+.mob p b { font-weight: 800; color: var(--value); }
+.mob-x {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #62625d;
+  font: 700 17px/1 var(--font-ui);
+  cursor: pointer;
+}
+.mob-x:hover { color: var(--red); }
+.steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 8px; }
+.steps button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 0 4px;
+  border: 0;
+  background: #1f1f1c;
+  font: 700 14px/1.1 var(--font-ui);
+  font-variant-numeric: lining-nums tabular-nums;
+  cursor: pointer;
+}
+.steps small { font-size: 11px; color: var(--faint); }
+.steps button:hover { background: #292925; }
+.steps button.on { background: var(--band); color: var(--value); }
+.steps button.on small { color: var(--title); }
+.hint { font-size: 14px; color: var(--faint); max-width: 78ch; }
+.howto { display: flex; flex-direction: column; gap: 8px; max-width: 54ch; padding: 14px 6px 18px; }
+.howto ol { padding-left: 1.3em; color: var(--title); }
+
+/* Rodapé da janela */
+.opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; }
+.toggle input { width: 15px; height: 15px; margin: 0; accent-color: var(--teal); }
+.volume { width: 100px; accent-color: var(--teal); cursor: pointer; }
+.dlgs { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.status { min-height: calc(1.4em + 10px); padding: 0 12px 10px; font-size: 14px; font-weight: 700; color: var(--faint); }
+.status[data-kind="busy"] { color: var(--amber); }
+.status[data-kind="ok"] { color: var(--value); }
+.status[data-kind="err"] { color: var(--red); }
+
+/* Janela de respawns */
+.bank .win-title { padding-inline: 12px; }
+.bank .win-body { gap: 8px; }
+#search { width: 100%; padding: 6px 8px; border: 1px solid #1f4744; background: #141413; color: var(--title); }
+#search::placeholder { color: var(--faint); }
+.bank-list { display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; padding: 0; list-style: none; }
+.bank-item {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding: 8px 10px;
+  width: 100%;
+  padding: 7px 10px 8px;
+  border: 1px solid var(--edge);
+  background: var(--card);
   text-align: left;
-  border: 1px solid transparent;
-  background: none;
   cursor: pointer;
 }
-.bank-item:hover { background: var(--panel); }
-.bank-item[aria-current="true"] { background: var(--panel-2); border-color: var(--line); }
-.bank-item b { font-weight: 700; overflow-wrap: anywhere; }
-.bank-item[aria-current="true"] b { color: var(--name); }
-.bank-item small { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
-.bank-empty { font-size: 15px; color: var(--muted); padding: 6px 2px; }
-.sync { font-size: 14px; color: var(--muted); }
-details.backup { font-size: 15px; }
-details.backup summary { cursor: pointer; color: var(--muted); }
+.bank-item b { font-weight: 800; color: var(--title); overflow-wrap: anywhere; }
+.bank-item small { font-size: 13px; font-weight: 700; color: var(--faint); overflow-wrap: anywhere; }
+.bank-item:hover { border-color: var(--btn-edge); }
+.bank-item[aria-current="true"] { border-color: #1f4a40; background: var(--band); }
+.bank-item[aria-current="true"] b { color: var(--amber); }
+.bank-item[aria-current="true"] small { color: var(--label); }
+.bank-empty { padding: 4px 2px; font-size: 14px; color: var(--faint); }
+.bank-foot { flex-direction: column; align-items: stretch; gap: 8px; }
+.sync { font-size: 13px; font-weight: 700; color: var(--faint); }
+details.backup { font-size: 14px; font-weight: 700; }
+details.backup summary { color: var(--faint); cursor: pointer; }
 details.backup textarea {
   width: 100%;
   min-height: 110px;
-  margin-top: 8px;
+  margin-block: 8px;
   padding: 8px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  font: 400 12px/1.4 var(--font-num);
+  border: 1px solid #1f4744;
+  background: #141413;
+  font: 12px/1.4 Consolas, ui-monospace, monospace;
+  color: var(--label);
   resize: vertical;
 }
-.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.backup .dlgs { margin-left: 0; }
+.backup .dlg { min-width: 0; font-size: 14px; }
 
-/* Botões */
-.btn {
-  padding: 7px 14px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  cursor: pointer;
-}
-.btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
-.btn.primary:hover { filter: brightness(1.08); }
-.btn.quiet { border-color: transparent; background: none; color: var(--muted); }
-.btn.quiet:hover { color: var(--danger); border-color: var(--line); }
-.btn.sure { color: var(--danger); border-color: var(--danger); }
-.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; cursor: pointer; }
-.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
-.volume { width: 110px; accent-color: var(--accent); cursor: pointer; }
-
-/* Ficha */
-.sheet { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-.sheet-empty { padding: 28px 0; color: var(--muted); max-width: 60ch; }
-.sheet-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
-.sheet-head .name {
-  flex: 1 1 240px;
-  min-width: 0;
-  padding: 2px 0;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  background: none;
-  font: 700 30px/1.15 var(--font-body);
-}
-.sheet-head .name:hover, .sheet-head .name:focus { border-bottom-color: var(--rule); outline: none; }
-.sheet-meta { flex-basis: 100%; font-size: 15px; color: var(--muted); }
-.block { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.block-head { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
-
-.boosts { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
-.boost {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  text-align: left;
-  cursor: pointer;
-}
-.boost:hover { border-color: var(--accent); }
-.boost b { font: 600 20px/1.1 var(--font-num); }
-.boost small { font: 400 12px/1.2 var(--font-num); color: var(--muted); }
-.boost[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.boost[aria-pressed="true"] small { color: inherit; opacity: 0.8; }
-
-/* Cronômetros */
-.timers { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
-.timer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px 16px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  min-width: 0;
-}
-.timer-digits { font: 600 64px/1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--value); }
-.timer-digits .unit { font-size: 22px; margin-left: 4px; color: var(--muted); }
-.timer[data-state="idle"] .timer-digits { color: var(--fg); }
-.timer[data-state="warn"] .timer-digits { color: var(--warn); }
-.timer[data-state="done"] .timer-digits { color: var(--name); }
-.timer-note { font: 400 14px/1.3 var(--font-num); color: var(--muted); min-height: 1.3em; }
-.timer-who { font-size: 15px; color: var(--name); overflow-wrap: anywhere; }
-.timer-bar { height: 4px; background: var(--panel-2); }
-.timer-bar i { display: block; height: 100%; width: 0; background: var(--value); }
-.timer[data-state="warn"] .timer-bar i { background: var(--warn); }
-
-/* Tabela */
-.table-scroll { position: relative; overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
-table { border-collapse: collapse; width: 100%; min-width: 620px; }
-th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
-tr:last-child td, tr:last-child th { border-bottom: 0; }
-thead th { font: 700 14px/1.2 var(--font-label); letter-spacing: 0.08em; color: var(--muted); }
-th:first-child, td:first-child { text-align: left; white-space: normal; }
-tbody th { font-weight: 700; color: var(--name); }
-tbody th small { font: 400 13px/1 var(--font-num); color: var(--muted); margin-left: 6px; }
-td .num { display: block; }
-td .sec { font-size: 16px; }
-td .kph { font-size: 12px; color: var(--muted); }
-.on { background: var(--panel-2); }
-td.on .sec { color: var(--value); font-weight: 600; }
-thead th.on { color: var(--fg); }
-td.x { width: 1%; padding-inline: 4px; }
-.hint { font-size: 14px; color: var(--muted); max-width: 75ch; }
 @media (prefers-reduced-motion: no-preference) {
-  .timer-bar i { transition: width 0.25s linear; }
+  .clock-bar i { transition: width 0.25s linear; }
+  .clock[data-state="done"] { animation: nasceu 1.4s ease-out 1; }
+  @keyframes nasceu { from { background: #1d4a41; } to { background: #0b0b0a; } }
 }
-@media (max-width: 480px) {
-  .timer-digits { font-size: 52px; }
-  .sheet-head .name { font-size: 24px; }
+@media (max-width: 860px) {
+  .desk { grid-template-columns: minmax(0, 1fr); }
+  .win.bonus { order: -1; }
+}
+@media (max-width: 620px) {
+  .controls, .mobs { grid-template-columns: minmax(0, 1fr); }
+  .clock-digits { font-size: 66px; }
+  .win-title { padding-inline: 12px 70px; }
 }
 </style>
 
+<div class="backdrop" aria-hidden="true"></div>
 <div class="wrap">
-  <header class="top">
-    <h1>Medivia Respawn</h1>
-    <p>Tempo de respawn com bônus de 10% a 50% e cronômetro</p>
+  <header class="masthead">
+    <div>
+      <h1>Medivia Respawn</h1>
+      <p>Cronômetro de respawn para as suas caçadas no Medivia, com o grupo e o bônus já calculados.</p>
+      <nav aria-label="Medivia">
+        <a href="https://wiki.medivia.online/mapper/" target="_blank" rel="noopener">Mapper da wiki</a>
+      </nav>
+    </div>
+    <a class="maker" href="https://github.com/Benaa42" target="_blank" rel="noopener"><img src="vibeforge.svg" width="252" height="72" alt="Vibeforge, produzido por Bena"></a>
   </header>
 
-  <section class="capture" id="drop" aria-labelledby="capture-title">
-    <h2 id="capture-title">Cole o print da janela de bônus</h2>
-    <p>No jogo, abra a janela de bônus do respawn e tire um print. Aqui, aperte <kbd>Ctrl</kbd> + <kbd>V</kbd>, arraste a imagem ou <label class="linklike" for="file">escolha um arquivo</label>. O print pode estar em qualquer percentual: os outros são calculados.</p>
-    <input class="sr" type="file" id="file" accept="image/*">
-    <p class="status" id="status" role="status" data-kind="info">A imagem é lida no seu navegador e descartada em seguida. Nada é enviado nem guardado.</p>
-  </section>
+  <p class="paste">Com o print da janela de bônus copiado, aperte <kbd>Ctrl</kbd> + <kbd>V</kbd> em qualquer lugar desta página. Ele é lido na hora, sem clicar em nada antes.</p>
 
-  <div class="bench">
-    <aside class="bank" aria-labelledby="bank-title">
-      <h2 class="label" id="bank-title">Banco de respawns</h2>
-      <input type="search" id="search" placeholder="Buscar área ou monstro" aria-label="Buscar área ou monstro" autocomplete="off">
-      <ul class="bank-list" id="bank-list"></ul>
-      <p class="sync" id="sync"></p>
-      <details class="backup" id="backup">
-        <summary>Cópia de segurança</summary>
-        <textarea id="backup-text" spellcheck="false" aria-label="Banco em JSON"></textarea>
-        <div class="row">
-          <button class="btn" type="button" id="backup-copy">Copiar</button>
-          <button class="btn" type="button" id="backup-import">Importar o texto acima</button>
-        </div>
-      </details>
+  <div class="desk">
+    <aside class="win bank" aria-labelledby="bank-title">
+      <header class="win-title"><h2 class="win-name" id="bank-title">Respawns</h2></header>
+      <div class="win-body">
+        <input type="search" id="search" placeholder="Buscar área ou monstro" aria-label="Buscar área ou monstro" autocomplete="off">
+        <ul class="bank-list" id="bank-list"></ul>
+      </div>
+      <footer class="win-foot bank-foot">
+        <p class="sync" id="sync"></p>
+        <details class="backup" id="backup">
+          <summary>Cópia de segurança</summary>
+          <textarea id="backup-text" spellcheck="false" aria-label="Banco em JSON"></textarea>
+          <div class="dlgs">
+            <button class="dlg go" type="button" id="backup-copy">Copiar</button>
+            <button class="dlg go" type="button" id="backup-import">Importar o texto acima</button>
+          </div>
+        </details>
+      </footer>
     </aside>
 
-    <main class="sheet" id="sheet"></main>
+    <main class="win bonus" id="drop">
+      <div id="sheet"></div>
+      <footer class="win-foot">
+        <div class="opts">
+          <label class="toggle"><input type="checkbox" id="opt-loop"> Repetir ao zerar</label>
+          <label class="toggle"><input type="checkbox" id="opt-sound"> Som</label>
+          <input type="range" class="volume" id="opt-volume" min="0" max="100" step="5" aria-label="Volume do som" title="Volume do som">
+        </div>
+        <div class="dlgs">
+          <button class="dlg go" type="button" id="float-btn">Janela flutuante</button>
+          <button class="dlg go" type="button" id="read-btn">Ler print</button>
+        </div>
+        <input class="sr" type="file" id="file" accept="image/*" tabindex="-1" aria-hidden="true">
+      </footer>
+      <p class="status" id="status" role="status" data-kind="info">Também dá para arrastar a imagem do print para cá ou escolher o arquivo em Ler print.</p>
+    </main>
   </div>
+
+  <footer class="colophon">Ferramenta de fã, sem ligação oficial com o Medivia. Os tempos vêm da janela de bônus do jogo. A imagem do print é lida no seu navegador e descartada em seguida.</footer>
 </div>
 
 <script src="vendor/tesseract.min.js"></script>
@@ -306,6 +463,7 @@ td.x { width: 1%; padding-inline: 4px; }
 document.documentElement.lang = 'pt-BR';
 
 const PCTS = [0, 10, 20, 30, 40, 50];
+const DURS = Array.from({ length: 16 }, (_, i) => 30 + i * 10);
 const $ = (s, r = document) => r.querySelector(s);
 
 function el(tag, props, ...kids) {
@@ -464,6 +622,7 @@ function normalize(d) {
   };
 }
 
+const pending = { seed: true, db: !!(window.claude && typeof window.claude.use === 'function') };
 const store = { seed: new Map(), shared: new Map(), local: new Map(), db: null, canWrite: null, queue: new Map() };
 for (const [id, d] of Object.entries(lsGet(LS_DB, {}))) {
   const n = normalize(d);
@@ -521,27 +680,30 @@ async function removeRespawn(id) {
 async function loadSeed() {
   try {
     const res = await fetch(new URL('respawns.json', document.baseURI), { cache: 'no-cache' });
-    if (!res.ok) return;
-    const data = await res.json();
-    for (const [key, d] of Object.entries(data && typeof data === 'object' ? data : {})) {
-      const n = normalize(d);
-      const id = slug(key);
-      if (n && id) store.seed.set(id, n);
+    if (res.ok) {
+      const data = await res.json();
+      for (const [key, d] of Object.entries(data && typeof data === 'object' ? data : {})) {
+        const n = normalize(d);
+        const id = slug(key);
+        if (n && id) store.seed.set(id, n);
+      }
     }
-    renderAll();
   } catch { /* site sem banco embutido */ }
+  pending.seed = false;
+  renderAll();
 }
 
 async function initShared() {
   if (!window.claude || typeof window.claude.use !== 'function') return;
   let db = null, user = null;
   try { [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } catch { /* sem banco compartilhado */ }
-  if (!db) return;
+  if (!db) { pending.db = false; renderAll(); return; }
   store.db = db;
   try { store.canWrite = user ? await user.can('data.write') : null; } catch { store.canWrite = null; }
   renderSync();
   let pushed = false;
   db.collection('respawns').onSnapshot(snap => {
+    pending.db = false;
     const m = new Map();
     for (const d of snap.docs) {
       const n = normalize(d.data());
@@ -554,13 +716,14 @@ async function initShared() {
       for (const [id, r] of [...store.local]) if (!m.has(id)) saveRespawn(id, r);
     }
     renderAll();
-  }, () => { store.db = null; renderSync(); });
+  }, () => { store.db = null; pending.db = false; renderAll(); });
 }
 
 /* ---------- Estado da tela ---------- */
-const ui = Object.assign({ id: null, pct: 10, party: 100, loop: false, sound: true, volume: 60 }, lsGet(LS_UI, {}));
+const ui = Object.assign({ id: null, pct: 10, party: 100, dur: 60, loop: false, sound: true, volume: 60 }, lsGet(LS_UI, {}));
 if (!PCTS.includes(ui.pct)) ui.pct = 10;
 if (!PARTIES.some(p => p.mult === ui.party)) ui.party = 100;
+if (!DURS.includes(ui.dur)) ui.dur = 60;
 if (!(ui.volume >= 0 && ui.volume <= 100)) ui.volume = 60;
 const saveUi = () => lsSet(LS_UI, ui);
 
@@ -604,6 +767,14 @@ function setParty(mult) {
   if (mult === ui.party) return;
   clearTimers();
   ui.party = mult;
+  saveUi();
+  renderAll();
+}
+
+// A duração só muda o custo, então os cronômetros em andamento continuam.
+function setDur(min) {
+  if (min === ui.dur) return;
+  ui.dur = min;
   saveUi();
   renderAll();
 }
@@ -763,14 +934,14 @@ function paintFloat(now) {
     const gs = groupsNow();
     const c = float.canvas, g = c.getContext('2d');
     c.height = Math.max(1, gs.length) * 96 + 8;
-    g.fillStyle = col('--bg'); g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = col('--ground'); g.fillRect(0, 0, c.width, c.height);
     gs.forEach((gr, i) => {
       const v = timerView(gr.t, now);
-      g.fillStyle = col(v.state === 'warn' ? '--warn' : v.state === 'done' ? '--name' : v.state === 'idle' ? '--fg' : '--value');
-      g.font = '600 56px "Chivo Mono", Consolas, monospace';
+      g.fillStyle = col(v.state === 'warn' ? '--amber' : v.state === 'done' ? '--title' : v.state === 'idle' ? '--label' : '--value');
+      g.font = '800 58px "Alegreya Sans", "Segoe UI", sans-serif';
       g.fillText(v.left + ' s', 14, i * 96 + 58);
-      g.fillStyle = col('--muted');
-      g.font = '18px "Alegreya Sans", sans-serif';
+      g.fillStyle = col('--amber');
+      g.font = '700 18px "Alegreya Sans", "Segoe UI", sans-serif';
       g.fillText(gr.who.slice(0, 44), 16, i * 96 + 86);
     });
   }
@@ -783,18 +954,20 @@ async function toggleFloat() {
     if ('documentPictureInPicture' in window) {
       const w = await window.documentPictureInPicture.requestWindow({ width: 320, height: 70 + Math.max(1, timers.size) * 92 });
       const cs = getComputedStyle(document.documentElement);
-      const vars = ['--bg', '--fg', '--muted', '--name', '--value', '--warn', '--accent', '--accent-ink', '--line']
+      const vars = ['--ground', '--title', '--label', '--amber', '--value', '--teal', '--btn', '--btn-edge', '--edge']
         .map(n => n + ':' + cs.getPropertyValue(n)).join(';');
-      w.document.head.append(el('style', { text:
-        ':root{' + vars + '}body{margin:0;padding:8px 12px 12px;background:var(--bg);color:var(--fg);font:15px system-ui,sans-serif}' +
-        '.f-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 8px;border-bottom:1px solid var(--line)}' +
-        '.f-main{display:flex;flex-direction:column;min-width:0}' +
-        '.f-main b{font:600 38px/1.1 Consolas,ui-monospace,monospace;color:var(--value)}' +
-        '.f-row[data-state=idle] b{color:var(--fg)}.f-row[data-state=warn] b{color:var(--warn)}.f-row[data-state=done] b{color:var(--name)}' +
-        '.f-main span{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
-        'button{flex:none;padding:8px 12px;border:1px solid var(--accent);background:none;color:var(--accent);font:700 14px system-ui,sans-serif;cursor:pointer}' +
-        'button:hover{background:var(--accent);color:var(--accent-ink)}' +
-        'button.all{margin-top:10px;width:100%;background:var(--accent);color:var(--accent-ink)}' }));
+      w.document.head.append(
+        el('link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Alegreya:wght@500&family=Alegreya+Sans:wght@700;800&display=swap' }),
+        el('style', { text:
+          ':root{' + vars + '}body{margin:0;padding:8px 12px 12px;background:var(--ground);color:var(--label);font:700 15px "Alegreya Sans","Segoe UI",sans-serif;font-variant-numeric:lining-nums tabular-nums}' +
+          '.f-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 8px;border-bottom:1px solid var(--edge)}' +
+          '.f-main{display:flex;flex-direction:column;min-width:0}' +
+          '.f-main b{font-weight:800;font-size:42px;line-height:1;color:var(--value)}' +
+          '.f-row[data-state=idle] b{color:var(--label)}.f-row[data-state=warn] b{color:var(--amber)}.f-row[data-state=done] b{color:var(--title)}' +
+          '.f-main span{color:var(--amber);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+          'button{flex:none;padding:5px 12px 4px;border:1px solid var(--btn-edge);background:var(--btn);color:var(--teal);font:500 15px Alegreya,Georgia,serif;text-transform:uppercase;cursor:pointer}' +
+          'button:hover{border-color:var(--teal)}' +
+          'button.all{margin-top:10px;width:100%}' }));
       float.list = el('div');
       float.all = el('button', { class: 'all', type: 'button', text: 'Iniciar todos', onclick: startAll });
       float.sig = null;
@@ -823,55 +996,113 @@ async function toggleFloat() {
   }
 }
 
-/* ---------- Ficha do respawn ---------- */
+/* ---------- Janela do respawn ---------- */
+function coin() {
+  const s = el('span', { class: 'coin', 'aria-hidden': 'true' });
+  s.innerHTML = '<svg viewBox="0 0 20 13"><g fill="#f2c230" stroke="#7a5a0c" stroke-width="1"><circle cx="5" cy="8.5" r="3.6"/><circle cx="15" cy="8.5" r="3.6"/><circle cx="10" cy="4.6" r="3.6"/></g></svg>';
+  return s;
+}
+
+// Controle no formato do jogo: título com o valor entre parênteses, barra com setas e as paradas logo abaixo.
+// Devolve o elemento e um set(i) que atualiza tudo no lugar. A barra nunca é recriada, então o arraste
+// não é interrompido e o valor muda em tempo real enquanto a pessoa desliza.
+function slider(id, label, stops, onPick) {
+  let index = -1;
+  const pick = i => { if (stops[i] && i !== index) onPick(stops[i].value); };
+  const title = el('h3');
+  const range = el('input', { type: 'range', id, min: 0, max: stops.length - 1, step: 1, 'aria-label': label,
+    oninput: () => pick(+range.value) });
+  const less = el('button', { type: 'button', id: id + '-menos', text: '‹', 'aria-label': 'Diminuir ' + label.toLowerCase(), onclick: () => pick(index - 1) });
+  const more = el('button', { type: 'button', id: id + '-mais', text: '›', 'aria-label': 'Aumentar ' + label.toLowerCase(), onclick: () => pick(index + 1) });
+  const marks = stops.map((s, i) => s.short == null ? null
+    : el('button', { type: 'button', id: id + '-' + i, text: s.short, onclick: () => pick(i) }));
+  return {
+    root: el('div', { class: 'ctl' }, title, el('div', { class: 'slide' }, less, range, more), el('div', { class: 'stops' }, marks)),
+    set(i) {
+      index = i;
+      setText(title, label + ' (' + stops[i].text + ')');
+      if (+range.value !== i) range.value = i;
+      range.setAttribute('aria-valuetext', stops[i].text);
+      less.disabled = i === 0;
+      more.disabled = i === stops.length - 1;
+      marks.forEach((m, k) => { if (m) m.classList.toggle('on', k === i); });
+    },
+  };
+}
+
 let sheetSig = '';
+let parts = null;   // esqueleto da janela aberta; só é refeito quando muda o respawn
+
+function buildSheet(id, fixed) {
+  // Barra de título: o nome da área, como na janela do jogo
+  const nameInput = el('input', {
+    class: 'win-name', id: 'area-name', maxLength: 60, readOnly: fixed,
+    'aria-label': 'Nome da área', title: fixed ? null : 'Clique para renomear',
+    onchange: () => rename(id, nameInput),
+  });
+  nameInput.spellcheck = false;
+  const del = el('button', { class: 'win-x', type: 'button', text: 'Excluir', onclick: () => {
+    if (del.classList.contains('sure')) { removeRespawn(id); return; }
+    del.classList.add('sure'); del.textContent = 'Excluir mesmo?';
+    setTimeout(() => { del.classList.remove('sure'); del.textContent = 'Excluir'; }, 4000);
+  } });
+  const p = {
+    id, fixed, nameInput,
+    stage: el('section', { class: 'stage', 'aria-label': 'Cronômetros de respawn' }),
+    party: slider('ctl-party', 'Grupo de caça',
+      PARTIES.map(x => ({ value: x.mult, text: x.label + ', ' + x.mult + '%', short: x.label.replace('Squad ', '') })), setParty),
+    bonus: slider('ctl-bonus', 'Percentual de bônus',
+      PCTS.map(x => ({ value: x, text: x + '%', short: String(x) })), v => select(id, v)),
+    dur: slider('ctl-dur', 'Duração',
+      DURS.map(d => ({ value: d, text: d + ' minutos', short: d % 30 === 0 ? String(d) : null })), setDur),
+    cost: el('p', { class: 'cost' }),
+    costNote: el('p', { class: 'ctl-note' }),
+    mobs: el('div', { class: 'mobs' }),
+    hint: el('p', { class: 'hint' }),
+  };
+  // Em cima o que muda o tempo (grupo e bônus); embaixo o que muda o preço (duração e custo).
+  $('#sheet').replaceChildren(
+    el('header', { class: 'win-title' }, nameInput, fixed ? null : del),
+    el('div', { class: 'win-body' },
+      p.stage,
+      el('div', { class: 'controls' }, p.party.root, p.bonus.root, p.dur.root,
+        el('div', { class: 'ctl' }, el('h3', { text: 'Custo do bônus' }), p.cost, p.costNote)),
+      el('h3', { class: 'band', text: 'Monstros potencializados' }),
+      p.mobs,
+      p.hint));
+  return p;
+}
+
 function renderSheet() {
   const sheet = $('#sheet');
   const r = ui.id && getRespawn(ui.id);
+  const loading = pending.seed || pending.db;
   const fixed = !!ui.id && !store.local.has(ui.id) && !store.shared.has(ui.id);
-  const sig = JSON.stringify([ui.id, ui.pct, ui.party, fixed, r]);
+  const sig = JSON.stringify([ui.id, ui.pct, ui.party, ui.dur, fixed, loading, r]);
   if (sig === sheetSig) return;
   sheetSig = sig;
   timerEls = new Map();
   if (!r) {
     clearTimers();
-    sheet.replaceChildren(el('p', { class: 'sheet-empty', text: allRespawns().length
-      ? 'Escolha um respawn no banco ou cole um print novo.'
-      : 'Cole o print de uma janela de bônus para ver aqui o tempo de respawn em cada percentual e iniciar o cronômetro.' }));
+    parts = null;
+    sheet.replaceChildren(
+      el('header', { class: 'win-title' }, el('h2', { class: 'win-name', text: loading ? 'Abrindo o banco de respawns' : 'Nenhum respawn aberto' })),
+      loading ? el('div', { class: 'win-body' }) : el('div', { class: 'win-body' }, el('div', { class: 'howto' },
+        el('p', { text: 'Para abrir um respawn que ainda não está na lista:' }),
+        el('ol', null,
+          el('li', { text: 'No Medivia, abra a janela de bônus do respawn.' }),
+          el('li', { text: 'Tire um print da janela inteira.' }),
+          el('li', null, 'Volte aqui e aperte ', el('kbd', { text: 'Ctrl' }), ' + ', el('kbd', { text: 'V' }), '.')),
+        el('p', { text: 'O print pode estar em qualquer percentual de bônus. Os outros são calculados.' }))));
     return;
   }
   const id = ui.id;
-
-  // Cabeçalho: nome editável e o que veio do print
-  const nameInput = el('input', { class: 'name', id: 'area-name', value: r.name, maxLength: 60, 'aria-label': 'Nome da área', spellcheck: false, readOnly: fixed,
-    onchange: () => rename(id, nameInput) });
-  const del = el('button', { class: 'btn quiet', type: 'button', text: 'Excluir', onclick: () => {
-    if (del.classList.contains('sure')) { removeRespawn(id); return; }
-    del.classList.add('sure'); del.textContent = 'Excluir mesmo?';
-    setTimeout(() => { del.classList.remove('sure'); del.textContent = 'Excluir'; }, 4000);
-  } });
-  const meta = [];
-  if (r.readAt != null) meta.push('Print lido a ' + r.readAt + '%');
-  if (r.cost10) meta.push(fmtInt(r.cost10) + ' gp a cada 10%' + (r.duration ? ' por ' + r.duration + ' min' : ''));
-  const head = el('div', { class: 'sheet-head' }, nameInput, fixed ? null : del, el('p', { class: 'sheet-meta', text: meta.join(' · ') }));
-
-  // Grupo de caça: entra na conta antes do bônus
+  if (!parts || parts.id !== id || parts.fixed !== fixed) parts = buildSheet(id, fixed);
+  const focusId = sheet.contains(document.activeElement) ? document.activeElement.id : '';
+  if (document.activeElement !== parts.nameInput) parts.nameInput.value = r.name;
   const partyNow = PARTIES.find(p => p.mult === ui.party);
-  const party = el('div', { class: 'block' },
-    el('h3', { class: 'label', text: 'Grupo de caça' }),
-    el('div', { class: 'boosts' }, PARTIES.map(p => el('button', {
-      class: 'boost', type: 'button', 'aria-pressed': String(p.mult === ui.party), onclick: () => setParty(p.mult),
-    }, el('b', { text: p.label }), el('small', { text: p.mult + '% de velocidade' })))),
-    el('p', { class: 'hint', text: 'O tempo do print vale para caça solo. O grupo acelera o respawn primeiro e o bônus entra depois.' }));
 
-  // Percentual de bônus
-  const boosts = el('div', { class: 'block' },
-    el('h3', { class: 'label', text: 'Percentual de bônus' }),
-    el('div', { class: 'boosts' }, PCTS.map(p => el('button', {
-      class: 'boost', type: 'button', 'aria-pressed': String(p === ui.pct), onclick: () => select(id, p),
-    }, el('b', { text: p ? p + '%' : 'Sem' }), el('small', { text: p ? (r.cost10 ? fmtInt(r.cost10 * p / 10) + ' gp' : 'bônus') : 'sem bônus' })))));
-
-  // Cronômetros: um por tempo de respawn diferente
+  // Cronômetros: um por tempo de respawn diferente, no lugar onde o jogo mostra o mapa
   const groups = new Map();
   for (const m of r.monsters) {
     const s = respawnAt(m.base, ui.pct, ui.party);
@@ -879,78 +1110,60 @@ function renderSheet() {
     groups.get(s).push(m.name);
   }
   for (const k of [...timers.keys()]) if (!groups.has(k)) { cancelSounds(timers.get(k)); timers.delete(k); }
-  const cards = [...groups].sort((a, b) => b[0] - a[0]).map(([sec, who]) => {
+  const clocks = [...groups].sort((a, b) => b[0] - a[0]).map(([sec, who]) => {
     if (!timers.has(sec)) timers.set(sec, { dur: sec, endAt: null, doneAt: null, nodes: [] });
-    const digits = el('span', { text: sec });
-    const note = el('div', { class: 'timer-note' });
+    const digits = el('b', { class: 'clock-digits', text: sec });
+    const note = el('p', { class: 'clock-note' });
     const bar = el('i');
-    const start = el('button', { class: 'btn primary', type: 'button', text: 'Iniciar', onclick: () => startTimer(sec) });
-    const root = el('article', { class: 'timer', 'data-state': 'idle' },
-      el('div', { class: 'timer-digits', 'aria-live': 'off' }, digits, el('span', { class: 'unit', text: 's' })),
+    const start = el('button', { class: 'dlg go', type: 'button', id: 'clock-' + sec, text: 'Iniciar', onclick: () => startTimer(sec) });
+    const root = el('article', { class: 'clock', 'data-state': 'idle' },
+      el('p', { class: 'clock-time' }, digits, 'segundos'),
       note,
-      el('div', { class: 'timer-bar' }, bar),
-      el('div', { class: 'timer-who', text: who.join(', ') }),
-      el('div', { class: 'row' }, start, el('button', { class: 'btn', type: 'button', text: 'Zerar', onclick: () => resetTimer(sec) })));
+      el('p', { class: 'clock-who', text: who.join(', ') }),
+      el('div', { class: 'clock-actions' }, start, el('button', { class: 'dlg stop', type: 'button', text: 'Zerar', onclick: () => resetTimer(sec) })),
+      el('div', { class: 'clock-bar' }, bar));
     timerEls.set(sec, { root, digits, note, bar, start });
     return root;
   });
-  // O volume só aparece com o som ligado; ao soltar o controle toca o aviso de zerar como amostra.
-  const volume = el('input', {
-    type: 'range', class: 'volume', id: 'opt-volume', min: 0, max: 100, step: 5, value: ui.volume, hidden: !ui.sound,
-    'aria-label': 'Volume do som', title: 'Volume do som',
-    oninput: e => { ui.volume = +e.target.value; if (master) master.gain.value = volGain(); },
-    onchange: () => {
-      saveUi();
-      armAudio();
-      if (audio) { tone(784, 0, 0.3, 0.12); tone(1047, 0.17, 0.5, 0.1); }
-    },
-  });
-  const toggle = (key, label) => el('label', { class: 'toggle' },
-    el('input', { type: 'checkbox', id: 'opt-' + key, checked: ui[key], onchange: e => {
-      ui[key] = e.target.checked;
-      saveUi();
-      if (key === 'sound') {
-        if (ui.sound) armAudio();
-        for (const t of timers.values()) scheduleSounds(t);
-        volume.hidden = !ui.sound;
-      }
-    } }), label);
-  const timersBlock = el('div', { class: 'block' },
-    el('div', { class: 'block-head' },
-      el('h3', { class: 'label', text: 'Cronômetro · ' + partyNow.label + (ui.pct ? ' a ' + ui.pct + '%' : ' sem bônus') }),
-      el('div', { class: 'row' },
-        toggle('loop', 'Repetir ao zerar'),
-        toggle('sound', 'Som'),
-        volume,
-        el('button', { class: 'btn', type: 'button', text: 'Janela flutuante', onclick: toggleFloat }))),
-    el('div', { class: 'timers' }, cards),
-    cards.length > 1 ? el('div', { class: 'row' },
-      el('button', { class: 'btn primary', type: 'button', text: 'Iniciar todos', onclick: startAll }),
-      el('button', { class: 'btn', type: 'button', text: 'Zerar todos', onclick: resetAll }),
-      el('span', { class: 'hint' }, 'Atalho: ', el('kbd', { text: 'Espaço' }))) : el('p', { class: 'hint' }, 'Atalho para iniciar: ', el('kbd', { text: 'Espaço' })));
+  parts.stage.replaceChildren(
+    el('div', { class: 'clocks' }, clocks),
+    el('div', { class: 'stage-all' },
+      clocks.length > 1 ? [
+        el('button', { class: 'dlg go', type: 'button', text: 'Iniciar todos', onclick: startAll }),
+        el('button', { class: 'dlg stop', type: 'button', text: 'Zerar todos', onclick: resetAll }),
+      ] : null,
+      el('span', null, clocks.length > 1 ? 'Atalho para iniciar todos: ' : 'Atalho para iniciar: ', el('kbd', { text: 'Espaço' }))));
 
-  // Tabela com todos os percentuais
-  const table = el('table', null,
-    el('thead', null, el('tr', null,
-      el('th', { scope: 'col', text: 'Monstro' }),
-      PCTS.map(p => el('th', { scope: 'col', class: p === ui.pct ? 'on' : null, text: p ? p + '%' : 'Sem bônus' })),
-      el('th', { class: 'x' }, el('span', { class: 'sr', text: 'Remover' })))),
-    el('tbody', null, r.monsters.map(m => el('tr', null,
-      el('th', { scope: 'row' }, m.name, el('small', { text: m.count + '×' })),
-      PCTS.map(p => {
+  // Controles: atualizados no lugar, sem recriar as barras
+  parts.party.set(PARTIES.indexOf(partyNow));
+  parts.bonus.set(PCTS.indexOf(ui.pct));
+  parts.dur.set(DURS.indexOf(ui.dur));
+  const cost = r.cost10 ? Math.round(r.cost10 * ui.pct / 10 * ui.dur / (r.duration || 60)) : null;
+  parts.cost.replaceChildren(cost == null ? 'não lido' : cost === 0 ? 'sem bônus' : fmtInt(cost), ...(cost ? [coin()] : []));
+  setText(parts.costNote, cost ? ui.pct + '% por ' + ui.dur + ' minutos' : '');
+
+  // Monstros: os mesmos dados do card do jogo, mais o tempo em cada percentual
+  parts.mobs.replaceChildren(...r.monsters.map((m, mi) => {
+    const now = respawnAt(m.base, ui.pct, ui.party);
+    return el('article', { class: 'mob' },
+      el('h4', { text: m.name + ' (' + m.count + 'x)' }),
+      el('button', { class: 'mob-x', type: 'button', text: '×', 'aria-label': 'Remover ' + m.name, title: 'Remover ' + m.name,
+        onclick: () => saveRespawn(id, { ...r, monsters: r.monsters.filter(x => x !== m) }) }),
+      el('p', null, 'Abates por hora: ', el('b', { text: killsPerHour(now, m.count) })),
+      el('p', null, 'Tempo de respawn: ', el('b', { text: now }), ' segundos'),
+      el('div', { class: 'steps' }, PCTS.map(p => {
         const s = respawnAt(m.base, p, ui.party);
-        return el('td', { class: p === ui.pct ? 'on' : null },
-          el('span', { class: 'num sec', text: s + ' s' }),
-          el('span', { class: 'num kph', text: fmtInt(killsPerHour(s, m.count)) + '/h' }));
-      }),
-      el('td', { class: 'x' }, el('button', { class: 'btn quiet', type: 'button', text: '×', 'aria-label': 'Remover ' + m.name, title: 'Remover ' + m.name,
-        onclick: () => saveRespawn(id, { ...r, monsters: r.monsters.filter(x => x !== m) }) }))))));
-  const tableBlock = el('div', { class: 'block' },
-    el('h3', { class: 'label', text: 'Monstros potencializados' }),
-    el('div', { class: 'table-scroll' }, table),
-    el('p', { class: 'hint', text: 'Segundos de respawn e abates por hora em cada percentual, para ' + partyNow.label + '. A lista do jogo rola: se faltou monstro, role a janela, tire outro print e cole. Ele entra nesta mesma área.' }));
+        return el('button', {
+          type: 'button', id: 'step-' + mi + '-' + p, class: p === ui.pct ? 'on' : null,
+          title: m.name + ' com ' + p + '% de bônus: ' + s + ' segundos', onclick: () => select(id, p),
+        }, el('small', { text: p + '%' }), el('span', { text: s }));
+      })));
+  }));
+  setText(parts.hint,
+    (r.readAt != null ? 'Lido de um print a ' + r.readAt + '%, tratado como caça solo. ' : '') +
+    'O grupo entra na conta antes do bônus. A lista do jogo rola: se faltou monstro, role a janela, tire outro print e cole. Ele entra nesta mesma área.');
 
-  sheet.replaceChildren(head, party, boosts, timersBlock, tableBlock);
+  if (focusId && document.activeElement.id !== focusId) { const f = document.getElementById(focusId); if (f) f.focus(); }
   tick();
 }
 
@@ -975,7 +1188,11 @@ async function rename(id, input) {
 }
 
 function renderAll() {
-  if (ui.id && !getRespawn(ui.id)) ui.id = null;
+  // A seleção só muda depois que o banco terminou de carregar: antes disso o respawn salvo pode não ter chegado.
+  if (!pending.seed && !pending.db && !getRespawn(ui.id)) {
+    const first = allRespawns()[0];
+    ui.id = first ? first.id : null;
+  }
   renderSync();
   renderBank();
   renderSheet();
@@ -1013,6 +1230,7 @@ async function readImage(blob) {
       duration: cost10 ? p.dur : (prev && prev.duration) || p.dur || null,
       readAt: p.pct,
     });
+    if (DURS.includes(p.dur)) ui.dur = p.dur;
     select(id, p.pct);
     let msg = (prev ? prev.name : name) + ' lido a ' + p.pct + '%, ' + p.monsters.length + (p.monsters.length === 1 ? ' monstro' : ' monstros') + '. ' +
       (where === 'shared' ? 'Salvo no banco compartilhado.' : 'Salvo no banco deste navegador.') + ' Imagem descartada.';
@@ -1043,7 +1261,7 @@ document.addEventListener('drop', e => {
   if (f) readImage(f); else setStatus('err', 'Isso não é uma imagem. Arraste o arquivo do print.');
 });
 $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) readImage(f); });
-drop.addEventListener('pointerenter', () => { getWorker().catch(() => {}); }, { once: true });
+$('#read-btn').addEventListener('pointerenter', () => { getWorker().catch(() => {}); }, { once: true });
 
 document.addEventListener('keydown', e => {
   if (e.code !== 'Space' || e.repeat || !timers.size) return;
@@ -1074,6 +1292,65 @@ $('#backup-import').addEventListener('click', async () => {
   }
   setStatus(n ? 'ok' : 'err', n ? n + (n === 1 ? ' respawn importado.' : ' respawns importados.') : 'Não achei nenhum respawn nesse texto.');
 });
+
+/* ---------- Rodapé da janela: opções e botões ---------- */
+const optVolume = $('#opt-volume');
+$('#opt-loop').checked = ui.loop;
+$('#opt-sound').checked = ui.sound;
+optVolume.value = ui.volume;
+optVolume.hidden = !ui.sound;
+$('#opt-loop').addEventListener('change', e => { ui.loop = e.target.checked; saveUi(); });
+$('#opt-sound').addEventListener('change', e => {
+  ui.sound = e.target.checked;
+  saveUi();
+  if (ui.sound) armAudio();
+  for (const t of timers.values()) scheduleSounds(t);
+  optVolume.hidden = !ui.sound;
+});
+// Ao soltar o controle de volume toca o aviso de zerar como amostra.
+optVolume.addEventListener('input', e => { ui.volume = +e.target.value; if (master) master.gain.value = volGain(); });
+optVolume.addEventListener('change', () => {
+  saveUi();
+  armAudio();
+  if (audio) { tone(784, 0, 0.3, 0.12); tone(1047, 0.17, 0.5, 0.1); }
+});
+$('#float-btn').addEventListener('click', toggleFloat);
+$('#read-btn').addEventListener('click', () => $('#file').click());
+
+/* ---------- Fundo: mapa de caverna em pixels, no estilo do mapa da janela de bônus ---------- */
+(function backdrop() {
+  try {
+    const W = 192, H = 120;
+    const c = el('canvas', { width: W, height: H });
+    const g = c.getContext('2d');
+    const hash = (x, y, k) => {
+      let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(k, 2246822519);
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+    };
+    const ease = t => t * t * (3 - 2 * t);
+    const noise = (x, y, k) => {
+      const xi = Math.floor(x), yi = Math.floor(y), u = ease(x - xi), v = ease(y - yi);
+      const a = hash(xi, yi, k), b = hash(xi + 1, yi, k), d = hash(xi, yi + 1, k), e = hash(xi + 1, yi + 1, k);
+      return a + (b - a) * u + (d - a) * v + (a - b - d + e) * u * v;
+    };
+    const fbm = (x, y, k) => noise(x, y, k) * 0.6 + noise(x * 2.1, y * 2.1, k + 7) * 0.3 + noise(x * 4.3, y * 4.3, k + 13) * 0.1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const cave = fbm(x / 22, y / 22, 1);
+      const vein = Math.abs(fbm(x / 30, y / 30, 5) - 0.5);
+      const grit = hash(x, y, 9);
+      let col;
+      if (cave < 0.44) col = grit < 0.5 ? '#150f0a' : '#1b130c';                               // rocha
+      else if (vein < 0.016) col = grit < 0.5 ? '#e0541a' : '#f08a1e';                         // lava
+      else if (vein < 0.028) col = '#7a2c12';                                                  // margem da lava
+      else if (grit > 0.993) col = '#8a8a86';                                                  // pedra solta
+      else col = grit < 0.33 ? '#3b2a1b' : grit < 0.66 ? '#42301f' : '#4a3623';                // chão
+      g.fillStyle = col;
+      g.fillRect(x, y, 1, 1);
+    }
+    document.documentElement.style.setProperty('--map', 'url(' + c.toDataURL() + ')');
+  } catch { /* sem fundo desenhado: fica o fundo liso */ }
+})();
 
 renderAll();
 loadSeed();
